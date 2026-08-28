@@ -43,6 +43,12 @@ CPU Trend:
 Perf
 | where ObjectName == "Processor" and CounterName == "% Processor Time"
 | summarize avg(CounterValue) by Computer, bin(TimeGenerated, 5m)
+Lessons Learned
+Connecting Grafana to Azure Monitor requires a properly configured service principal with the correct RBAC role assigned at the subscription or resource group level
+KQL heartbeat queries provide a fast, reliable way to confirm that all VMs are actively reporting to the Log Analytics workspace
+Real-world events like VM reboots appear as distinct spikes in Grafana dashboards alongside intentional stress test spikes, reinforcing the value of contextual documentation
+Alert rules in Azure Monitor require both a condition and an action group to function end-to-end - configuring one without the other leaves the alert incomplete
+Prometheus and Grafana together create a powerful metrics pipeline that complements Azure Monitor's native capabilities
 What This Project Meant to Me
 This project was important to me because it showed that I can set up alerting and monitoring using the same tools used in cloud engineering operations. Working with Azure Monitor and Grafana gave me hands-on experience with the exact stack that cloud and DevOps engineers use to keep production systems healthy and observable.
 
@@ -52,5 +58,3 @@ Log Analytics KQL query writing
 Grafana dashboard setup with Azure Monitor integration
 Service principal configuration and Azure RBAC assignment
 End-to-end observability pipeline validation
-
----
