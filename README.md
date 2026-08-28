@@ -1,60 +1,54 @@
 # Azure Monitoring & Observability: HA Web Infrastructure
 
-**Author:** Maurrin Carter
+**Author:** Maurrin Carter  
+**Technologies:** Azure Monitor, Log Analytics (KQL), Azure Monitor Agent (AMA), Data Collection Rules (DCR), Grafana, Prometheus  
+
+---
 
 ## Project Overview
 
-This project demonstrates a production-grade monitoring and observability stack built on Microsoft Azure. It covers end-to-end configuration of Azure Monitor, Log Analytics, and Grafana to track the health and performance of a high-availability web infrastructure.
+This project demonstrates a production-grade monitoring and observability architecture built on Microsoft Azure. It covers end-to-end configuration of Azure Monitor, Log Analytics, and Grafana to track the health, availability, and performance of a high-availability web infrastructure.
 
-## Infrastructure Summary
+---
 
-| Resource | Name |
-|---|---|
-| Resource Group | `ha-web-infrastructure-rg` |
-| Virtual Machines | `vm-web-01`, `vm-web-02`, `vm-db-01`, `vm-db-02` |
-| Log Analytics Workspace | `ha-web-logs` |
-| Load Balancer | `ha-load-balancer` |
+## Architecture & Infrastructure Summary
 
-## Tools Used
+| Resource | Resource Name / Details | Purpose |
+|---|---|---|
+| **Resource Group** | `ha-web-infrastructure-rg` | Primary resource container |
+| **Virtual Machines** | `vm-web-01`, `vm-web-02`, `vm-db-01`, `vm-db-02` | Workload compute instances |
+| **Load Balancer** | `ha-load-balancer` | Traffic distribution and health probing |
+| **Log Analytics** | `ha-web-logs` | Centralized telemetry and log ingestion |
+| **Data Collection** | `ha-linux-dcr` (DCR) | Policy-driven syslog, metric, and heartbeat pipeline |
 
-- **Azure Monitor** - Metrics collection, alert rules, and action groups
-- **Log Analytics** - KQL-based querying and heartbeat monitoring
-- **Grafana** - Real-time dashboard visualization connected via Azure Monitor data source
-- **Prometheus** - Metrics scraping integrated with Grafana
+---
+
+## Observability Stack & Tools
+
+- **Azure Monitor & AMA:** Deployed Azure Monitor Linux Agent via Managed Identities and Data Collection Rules (DCR) for agent-based telemetry ingestion.
+- **Log Analytics & KQL:** Structured querying across `Heartbeat`, `Perf`, and `Syslog` tables for operational health checks.
+- **Grafana:** Real-time dashboards visualizing CPU utilization, memory thresholds, and node health via Azure Monitor data source integration.
+- **Prometheus:** Metrics scraping pipeline integrated into dashboard visualizations.
+
+---
 
 ## Screenshots
 
-| # | Screenshot | Description |
+| # | File Path | Description |
 |---|---|---|
-| 01 | `screenshots/azure-monitor/` | Log Analytics workspace and alert configuration |
-| 02 | `screenshots/azure-monitor/` | Azure Monitor alert rules and action groups |
-| 03 | `screenshots/azure-monitor/` | Heartbeat query results confirming all VMs reporting |
-| 04 | `screenshots/grafana/` | Grafana connected to Azure Monitor data source |
-| 05 | `screenshots/grafana/` | CPU dashboard showing reboot spike and stress test validation |
+| 01 | `screenshots/azure-monitor/01-workspace-overview.png` | Log Analytics workspace and ingestion configuration |
+| 02 | `screenshots/azure-monitor/02-alert-rules.png` | Azure Monitor alert rules and Action Group targets |
+| 03 | `screenshots/azure-monitor/03-heartbeat-query.png` | KQL Heartbeat query confirming all VM instances actively reporting |
+| 04 | `screenshots/grafana/04-datasource-setup.png` | Grafana connected via Azure Monitor Service Principal |
+| 05 | `screenshots/grafana/05-cpu-performance.png` | Dashboard telemetry validating stress-test spikes and VM lifecycle events |
+
+---
 
 ## Key KQL Queries
 
-**Heartbeat Check:**
+### 1. Active Heartbeat Verification
 ```kql
 Heartbeat
 | summarize arg_max(TimeGenerated, *) by Computer
-CPU Trend:
-
-Perf
-| where ObjectName == "Processor" and CounterName == "% Processor Time"
-| summarize avg(CounterValue) by Computer, bin(TimeGenerated, 5m)
-Lessons Learned
-Connecting Grafana to Azure Monitor requires a properly configured service principal with the correct RBAC role assigned at the subscription or resource group level
-KQL heartbeat queries provide a fast, reliable way to confirm that all VMs are actively reporting to the Log Analytics workspace
-Real-world events like VM reboots appear as distinct spikes in Grafana dashboards alongside intentional stress test spikes, reinforcing the value of contextual documentation
-Alert rules in Azure Monitor require both a condition and an action group to function end-to-end - configuring one without the other leaves the alert incomplete
-Prometheus and Grafana together create a powerful metrics pipeline that complements Azure Monitor's native capabilities
-What This Project Meant to Me
-This project was important to me because it showed that I can set up alerting and monitoring using the same tools used in cloud engineering operations. Working with Azure Monitor and Grafana gave me hands-on experience with the exact stack that cloud and DevOps engineers use to keep production systems healthy and observable.
-
-Skills Demonstrated
-Azure Monitor configuration and alert rule creation
-Log Analytics KQL query writing
-Grafana dashboard setup with Azure Monitor integration
-Service principal configuration and Azure RBAC assignment
-End-to-end observability pipeline validation
+| project Computer, OSType, Version, RemoteIPCountry, TimeGenerated
+| order by TimeGenerated desc
